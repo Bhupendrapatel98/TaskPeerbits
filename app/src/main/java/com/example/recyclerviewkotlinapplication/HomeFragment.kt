@@ -1,38 +1,27 @@
 package com.example.recyclerviewkotlinapplication
 
-import android.app.PendingIntent
-import android.content.Context
-import android.content.Intent
-import android.graphics.Color
-import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
-import androidx.appcompat.content.res.AppCompatResources
-import androidx.browser.customtabs.CustomTabColorSchemeParams
-import androidx.browser.customtabs.CustomTabsIntent
-import androidx.core.graphics.drawable.DrawableCompat
-import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.Navigation.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.recyclerviewkotlinapplication.adapter.PostAdapter
-import com.example.recyclerviewkotlinapplication.data.Post
+import com.example.recyclerviewkotlinapplication.data.Data
+import com.example.recyclerviewkotlinapplication.data.NotificationData
+import com.example.recyclerviewkotlinapplication.network.Api
+import com.example.recyclerviewkotlinapplication.network.RetrofitBuilder
 import com.example.recyclerviewkotlinapplication.network.Url
-import com.example.recyclerviewkotlinapplication.repo.PostRepo
 import com.example.recyclerviewkotlinapplication.room.DatabaseBuilder
 import com.example.recyclerviewkotlinapplication.room.DatabaseHelperImpl
 import com.example.recyclerviewkotlinapplication.room.RoomDBViewModel
 import com.example.recyclerviewkotlinapplication.room.ViewModelFactory
-import com.example.recyclerviewkotlinapplication.viewModel.PostViewModel
-import com.example.recyclerviewkotlinapplication.viewModel.PostViewModelFactory
-import kotlinx.android.synthetic.main.activity_main.*
+import com.google.gson.JsonObject
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.util.ArrayList
+import okhttp3.Callback
+import retrofit2.Call
+import retrofit2.Response
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
@@ -46,9 +35,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
         submit_button.setOnClickListener{
 
-            GlobalScope.launch {
+            sendNotification()
+
+            //room
+           /* GlobalScope.launch {
                 userViewModel.insertUsers(name.text.toString(),age.text.toString().toInt(),destination.text.toString())
-            }
+            }*/
 
             /*val intent = Intent(context,MainActivity::class.java)
             intent.putExtra("name",name.text.toString())
@@ -58,5 +50,35 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
 
     }
+
+    fun sendNotification(){
+
+        val data = Data("Bhupendra","hiiiiiii")
+
+        val notificationData = NotificationData("/topics/Bhup",data,)
+
+        with(RetrofitBuilder) {
+
+            getRetrofitClint(Url.Fcm_url)
+                .create(Api::class.java)
+                .send("application/json","application/json",
+                    "key=AAAA3He4Few:APA91bG7MPMaJmiXq6pe9yruCSzkIhV-FREDF42_hCgjGnvnYJWPavieIqAseHwfnSpbLpxFvdbPCIggRIwHY-K6eNgAfvghOgtuo8EVyrPIfbgksE6AMtVjDochQLvuTQu1gCVFjOHk",
+                    notificationData)
+                .enqueue(object :retrofit2.Callback<JsonObject>{
+                    override fun onResponse(call: Call<JsonObject>, response: Response<JsonObject>
+                    ) {
+                        Log.d("dbdjh", "onResponse: "+response)
+                        Log.d("hdfgdhf", "onResponse: "+response.body())
+                    }
+
+                    override fun onFailure(call: Call<JsonObject>, t: Throwable) {
+                        TODO("Not yet implemented")
+                    }
+
+                })
+        }
+
+    }
 }
+
 
